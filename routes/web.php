@@ -3,6 +3,8 @@ use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ProductController;
+
 
 
 
@@ -20,4 +22,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('customers', CustomerController::class);
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('products', ProductController::class);
 });

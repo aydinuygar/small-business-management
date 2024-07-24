@@ -27,10 +27,10 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="collapse navbar-collapse d-flex justify-content-center" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto">
-
+                        <!-- Optionally, you can add more items here -->
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -76,16 +76,16 @@
             <div class="container">
                 <div class="row">
                     <!-- Sidebar -->
-                    <div class="col-md-3">
-                        @include('sidebar')
-                    </div>
+                    @auth
+                        <div class="col-md-3">
+                            @include('sidebar')
+                        </div>
+                    @endauth
                     <div class="col-md-9">
                         @yield('content')
                     </div>
-                  
                 </div>
             </div>
-            
         </main>
     </div>
 </body>
