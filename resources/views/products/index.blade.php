@@ -16,6 +16,7 @@
                                     <th>Name</th>
                                     <th>Price</th>
                                     <th>Description</th>
+                                    <th>Stock Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -25,6 +26,14 @@
                                         <td>{{ $product->name }}</td>
                                         <td>${{ $product->price }}</td>
                                         <td>{{ $product->description }}</td>
+                                        <td>
+                                            @if($product->stocks->sum('quantity') == 0)
+                                                <span class="text-warning">No stock available</span>
+                                                <a href="{{ route('stocks.index') }}" class="btn btn-success btn-sm">Add Stock</a>
+                                            @else
+                                                {{ $product->stocks->sum('quantity') }} units available
+                                            @endif
+                                        </td>
                                         <td>
                                             <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning btn-sm">Edit</a>
                                             <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display:inline;">

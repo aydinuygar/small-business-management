@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StockController;
 
 
 
@@ -26,4 +27,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('products', ProductController::class);
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('stocks', StockController::class);
 });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Stock;
 
 class ProductController extends Controller
 {
@@ -25,7 +26,15 @@ class ProductController extends Controller
             'price' => 'required|numeric',
         ]);
 
-        Product::create($request->all());
+        // Ürünü oluştur
+        $product = Product::create($request->all());
+
+        // Stok bilgisini oluştur (quantities 0 olacak)
+        Stock::create([
+            'product_id' => $product->id,
+            'quantity' => 0,
+        ]);
+
         return redirect()->route('products.index');
     }
 
