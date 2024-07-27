@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\OrderController;
+
 
 
 
@@ -31,4 +33,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('stocks', StockController::class);
+});
+Route::middleware(['auth'])->group(function () {
+    Route::resource('orders', OrderController::class);
 });
