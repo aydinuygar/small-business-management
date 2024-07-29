@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Stock; 
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -31,6 +32,7 @@ class OrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
     public function store(Request $request)
     {
         $request->validate([
@@ -45,6 +47,12 @@ class OrderController extends Controller
 
         foreach ($orderDetails as &$detail) {
             $product = Product::find($detail['product_id']);
+            $stock = Stock::where('product_id', $product->id)->first();
+
+            if ($stock->quantity < $detail['quantity']) {
+                return redirect()->back()->withErrors(['error' => "The quantity for {$product->name} exceeds the available stock."]);
+            }
+
             $detail['price'] = $product->price;
             $totalAmount += $detail['quantity'] * $detail['price'];
         }
@@ -55,6 +63,13 @@ class OrderController extends Controller
         $order->total_amount = $totalAmount;
         $order->order_details = json_encode($orderDetails); // Store as JSON
         $order->save();
+
+        // Update stock after saving the order
+        foreach ($orderDetails as $detail) {
+            $stock = Stock::where('product_id', $detail['product_id'])->first();
+            $stock->quantity -= $detail['quantity'];
+            $stock->save();
+        }
 
         return redirect()->route('orders.index')->with('success', 'Order created successfully.');
     }
@@ -94,27 +109,81 @@ class OrderController extends Controller
 
         $orderDetails = $request->input('order_details');
         $totalAmount = 0;
+        $insufficientStock = [];
+
+        // Decode existing order details
+        $existingOrderDetails = json_decode($order->order_details, true);
+
+        // Calculate required stock adjustments
+        $stockAdjustments = [];
+
+        foreach ($existingOrderDetails as $existingDetail) {
+            if (!isset($stockAdjustments[$existingDetail['product_id']])) {
+                $stockAdjustments[$existingDetail['product_id']] = 0;
+            }
+            $stockAdjustments[$existingDetail['product_id']] += $existingDetail['quantity'];
+        }
 
         foreach ($orderDetails as &$detail) {
             $product = Product::find($detail['product_id']);
-            $detail['price'] = $product->price;
-            $totalAmount += $detail['quantity'] * $detail['price'];
+            $stock = Stock::where('product_id', $detail['product_id'])->first();
+
+            if (!isset($stockAdjustments[$detail['product_id']])) {
+                $stockAdjustments[$detail['product_id']] = 0;
+            }
+            $stockAdjustments[$detail['product_id']] -= $detail['quantity'];
+
+            if ($stock->quantity + $stockAdjustments[$detail['product_id']] < 0) {
+                $insufficientStock[] = $product->name;
+            } else {
+                $detail['price'] = $product->price;
+                $totalAmount += $detail['quantity'] * $detail['price'];
+            }
         }
 
+        if (!empty($insufficientStock)) {
+            return redirect()->back()->withErrors([
+                'insufficient_stock' => 'Insufficient stock for: ' . implode(', ', $insufficientStock)
+            ])->withInput();
+        }
+
+        // Update order details and total amount
         $order->customer_id = $request->input('customer_id');
         $order->total_amount = $totalAmount;
-        $order->order_details = json_encode($orderDetails); // Update as JSON
+        $order->order_details = json_encode($orderDetails);
         $order->save();
+
+        // Update stock levels
+        foreach ($stockAdjustments as $productId => $adjustment) {
+            $stock = Stock::where('product_id', $productId)->first();
+            $stock->quantity += $adjustment;
+            $stock->save();
+        }
 
         return redirect()->route('orders.index')->with('success', 'Order updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Order $order)
     {
+        // Restore stock quantities
+        $orderDetails = json_decode($order->order_details, true);
+
+        foreach ($orderDetails as $detail) {
+            $stock = Stock::where('product_id', $detail['product_id'])->first();
+            if ($stock) {
+                $stock->quantity += $detail['quantity'];
+                $stock->save();
+            }
+        }
+
+        // Delete the order
         $order->delete();
+        
         return redirect()->route('orders.index')->with('success', 'Order deleted successfully.');
     }
+
 }

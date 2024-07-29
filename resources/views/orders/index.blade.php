@@ -35,7 +35,7 @@
                                     <td>
                                         <a href="{{ route('orders.show', $order->id) }}" class="btn btn-info btn-sm">View</a>
                                         <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                        <form action="{{ route('orders.destroy', $order->id) }}" method="POST" style="display:inline;">
+                                        <form action="{{ route('orders.destroy', $order->id) }}" method="POST" style="display:inline;" onsubmit="return confirmDelete();">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -50,4 +50,10 @@
         </div>
     </div>
 </div>
+
+<script>
+    function confirmDelete() {
+        return confirm('Are you sure you want to delete this order?');
+    }
+</script>
 @endsection

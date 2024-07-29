@@ -8,6 +8,16 @@
                 <div class="card-header">{{ __('Create Order') }}</div>
 
                 <div class="card-body">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <form method="POST" action="{{ route('orders.store') }}">
                         @csrf
 
@@ -29,7 +39,6 @@
                         <div class="form-group mt-3">
                             <label for="order_details">Order Details</label>
                             <div id="order_details">
-                                <!-- Initial form field for order details -->
                                 <div class="row mb-2">
                                     <div class="col-md-5">
                                         <select name="order_details[0][product_id]" class="form-control @error('order_details.0.product_id') is-invalid @enderror" required>
